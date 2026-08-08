@@ -1,31 +1,71 @@
 import javax.swing.*;
 import java.awt.*;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import java.awt.Graphics;
-import java.awt.Color;
+import java.util.Random;
 
-public class Scene extends JFrame {
-
-    // מחלקה פנימית סטטית כדי שהכל יעבוד בקובץ אחד בלי בעיות
-    public static class GamePanel extends JPanel {
-        @Override
-        protected void paintComponent(Graphics graphics) {
-            super.paintComponent(graphics);
-            graphics.setColor(Color.RED);
-            graphics.fillRect(100, 100, 100, 100);
-        }
+public class Scene extends JPanel {
+    private Player player;
+    private int width;
+    private int height;
+    private  Integer direction=null;
+    public void setDirection(Integer direction){
+        this.direction=direction;
     }
 
-    public static void main(String[] args) {
-        JFrame window = new JFrame("Game");
-        window.setSize(1500, 800);
-        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        window.setLocationRelativeTo(null);
 
-        GamePanel panel = new GamePanel();
-        window.add(panel);
+    public Scene (int x, int y, int width, int height) {
+        this.width = width;
+        this.height = height;
+        this.setBounds(x, y, width, height);
+        this.player = new Player(100, 100);
 
-        window.setVisible(true);
+
+        this.setFocusable(true);
+        this.requestFocus();
+        this.addKeyListener(new MovementListener(this.player,this));
+
+
+        this.mainGameLoop();
+    }
+
+    public void mainGameLoop () {
+        new Thread(() -> {
+            Random R1 = new Random();
+            while (true) {
+                System.out.println(this.player.getX());
+                if (direction!=null) {
+                    if (direction == 0) {
+                        if (this.player.getX() < this.width - 5) {
+                            this.player.moveRight();
+                        } else {
+                            direction = 1;
+                            this.player.moveLeft();
+                        }
+                    }
+                    if (direction == 1) {
+                        if (this.player.getX() >= 5) {
+                            this.player.moveLeft();
+                        } else {
+                            direction = 0;
+                        }
+                    }
+                    if (direction == 2) {
+                        this.player.moveDown();
+                    }
+                    if (direction == 3) {
+                        this.player.moveUp();
+                    }
+                }
+                try {
+                    Thread.sleep(10);
+                    this.repaint();
+                } catch (InterruptedException e) {}
+            }
+        }).start();
+    }
+
+    public void paintComponent (Graphics graphics) {
+        super.paintComponent(graphics);
+        this.player.draw(graphics);
+
     }
 }
