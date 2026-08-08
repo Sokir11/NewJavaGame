@@ -219,7 +219,7 @@ public class Scene extends JPanel {
         }
 
         // Score
-        g.setColor(Color.WHITE);
+            g.setColor(Color.BLACK);
 
         g.setFont(
                 new Font(
@@ -234,5 +234,6 @@ public class Scene extends JPanel {
                 20,
                 30
         );
+
     }
 }
