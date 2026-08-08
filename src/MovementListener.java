@@ -30,6 +30,6 @@ public class MovementListener implements KeyListener {
         }}
 
     public void keyReleased(KeyEvent e) {
-        System.out.println("Released");
+      //  System.out.println("Released");
     }
 }

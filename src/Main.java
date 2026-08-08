@@ -4,6 +4,9 @@ import java.awt.*;
 public class Main {
     public static final int WINDOW_WIDTH = 1200;
     public static final int WINDOW_HEIGHT = 800;
+    public static final int EASY=1;
+    public static final int MID=2;
+    public static final int HARD=3;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -35,15 +38,15 @@ public class Main {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.DARK_GRAY);
 
-        JLabel titleLabel = new JLabel("סנייק - המשחק");
+        JLabel titleLabel = new JLabel("Robot game");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 36));
         titleLabel.setForeground(Color.WHITE);
 
         // בחירת רמות קושי (עונה על דרישת התוספות במטלה)
-        JButton easyButton = new JButton("קל (מעט סלעים)");
-        JButton mediumButton = new JButton("בינוני");
-        JButton hardButton = new JButton("קשה (הרבה סלעים)");
-        JButton instructionsButton = new JButton("הוראות משחק");
+        JButton easyButton = new JButton("Easy (Less rocks)");
+        JButton mediumButton = new JButton("Mid");
+        JButton hardButton = new JButton("Hard (Many rocks)");
+        JButton instructionsButton = new JButton("How To Play");
 
         Font btnFont = new Font("Arial", Font.PLAIN, 18);
         easyButton.setFont(btnFont);
@@ -51,9 +54,9 @@ public class Main {
         hardButton.setFont(btnFont);
         instructionsButton.setFont(btnFont);
 
-        easyButton.addActionListener(e -> startGameWithDifficulty(cardLayout, mainPanel, gameScene, 1));
-        mediumButton.addActionListener(e -> startGameWithDifficulty(cardLayout, mainPanel, gameScene, 3));
-        hardButton.addActionListener(e -> startGameWithDifficulty(cardLayout, mainPanel, gameScene, 6));
+        easyButton.addActionListener(e -> startGameWithDifficulty(cardLayout, mainPanel, gameScene, EASY));
+        mediumButton.addActionListener(e -> startGameWithDifficulty(cardLayout, mainPanel, gameScene, MID));
+        hardButton.addActionListener(e -> startGameWithDifficulty(cardLayout, mainPanel, gameScene, HARD));
 
         instructionsButton.addActionListener(e -> cardLayout.show(mainPanel, "INSTRUCTIONS"));
 
@@ -70,7 +73,7 @@ public class Main {
         return panel;
     }
 
-    private static void startGameWithDifficulty(CardLayout cardLayout, JPanel mainPanel, Scene gameScene, int difficultyLevel) {
+    private static void startGameWithDifficulty( CardLayout cardLayout, JPanel mainPanel, Scene gameScene, int difficultyLevel) {
         gameScene.setDifficulty(difficultyLevel);
         cardLayout.show(mainPanel, "GAME");
         gameScene.startGame();
@@ -79,12 +82,12 @@ public class Main {
 
     private static JPanel createInstructionsPanel(CardLayout cardLayout, JPanel mainPanel) {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.LIGHT_GRAY);
+        panel.setBackground(Color.WHITE);
 
-        // מסך ההוראות המדויק שכתבת
+        // מdirections for player
         JTextArea instructionsText = new JTextArea(
-                "==================================================\n" +
-                        "                 SNAKE / ROBOT GAME\n" +
+                        "==================================================\n" +
+                        "                              ROBOT GAME\n" +
                         "==================================================\n" +
                         "\n" +
                         "1. GAME OBJECTIVE:\n" +
@@ -120,9 +123,9 @@ public class Main {
         instructionsText.setFont(new Font("Arial", Font.PLAIN, 14));
         instructionsText.setEditable(false);
         instructionsText.setOpaque(false);
-        instructionsText.setMargin(new Insets(20, 20, 20, 20));
+        instructionsText.setMargin(new Insets(47, WINDOW_WIDTH/3, 20, 20));
 
-        JButton backButton = new JButton("חזרה לתפריט הראשי");
+        JButton backButton = new JButton("back to main menu");
         backButton.setFont(new Font("Arial", Font.PLAIN, 14));
         backButton.addActionListener(e -> cardLayout.show(mainPanel, "MENU"));
 
