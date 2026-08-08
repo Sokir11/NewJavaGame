@@ -29,6 +29,9 @@ public class Player {
     public int getX () {
         return this.x;
     }
+     public int getY() {
+        return this.y;
+    }
 
     public void draw(Graphics graphics) {
         graphics.setColor(Color.CYAN);
