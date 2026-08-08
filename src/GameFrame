@@ -1,0 +1,123 @@
+import javax.swing.*;
+import java.awt.*;
+
+public class GameFrame extends JFrame {
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
+    public GameFrame() {
+        setTitle("Snake Game");
+        setSize(600, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
+        JPanel menuPanel = createMenuPanel();
+        JPanel instructionsPanel = createInstructionsPanel();
+        JPanel gamePanel = new JPanel();
+        gamePanel.setBackground(Color.BLACK);
+        JLabel gamePlaceholder = new JLabel("המשחק ירוץ כאן...", JLabel.CENTER);
+        gamePlaceholder.setForeground(Color.WHITE);
+        gamePanel.add(gamePlaceholder);
+        mainPanel.add(menuPanel, "MENU");
+        mainPanel.add(instructionsPanel, "INSTRUCTIONS");
+        mainPanel.add(gamePanel, "GAME");
+        add(mainPanel);
+        // מתחילים את הצגת המסכים במסך הראשי (Menu)
+        cardLayout.show(mainPanel, "MENU");
+    }
+// התפריט הראשי
+    private JPanel createMenuPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout()); // שומר על סידור יפה במרכז
+        panel.setBackground(Color.DARK_GRAY);
+        JLabel titleLabel = new JLabel("סנייק - המשחק");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 32));
+        titleLabel.setForeground(Color.WHITE);
+        JButton startButton = new JButton("התחל משחק");
+        JButton instructionsButton = new JButton("הוראות משחק");
+        // עיצוב כפתורים קטן
+        startButton.setFont(new Font("Arial", Font.PLAIN, 18));
+        instructionsButton.setFont(new Font("Arial", Font.PLAIN, 18));
+        // מעבר למסך המשחק
+        startButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "GAME");
+        });
+        // מעבר למסך ההוראות
+        instructionsButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "INSTRUCTIONS");
+        });
+        // סידור הרכיבים בפאנל
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(10, 10, 20, 10);
+        panel.add(titleLabel, gbc);
+        gbc.gridy = 1;
+        panel.add(startButton, gbc);
+        gbc.gridy = 2;
+        panel.add(instructionsButton, gbc);
+        return panel;
+    }
+    private JPanel createInstructionsPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setBackground(Color.LIGHT_GRAY);
+
+        JTextArea instructionsText = new JTextArea(
+          "==================================================\n" +
+                  "                 SNAKE / ROBOT GAME\n" +
+                  "==================================================\n" +
+                  "\n" +
+                  "1. GAME OBJECTIVE:\n" +
+                  "   * Control a small robot to collect food and score points.\n" +
+                  "   * Each food collected grants 1 point.\n" +
+                  "\n" +
+                  "2. CONTROLS:\n" +
+                  "   * W - Move Up\n" +
+                  "   * A - Move Left\n" +
+                  "   * S - Move Down\n" +
+                  "   * D - Move Right\n" +
+                  "\n" +
+                  "3. ELEMENTS & OBSTACLES:\n" +
+                  "   * Robot: The player character.\n" +
+                  "   * Rocks (Obstacles): Colored BLACK. Touching a rock results in death.\n" +
+                  "   * Food: Comes in random colors (excluding black). Each food item \n" +
+                  "     has a random color generated dynamically.\n" +
+                  "\n" +
+                  "4. DIFFICULTY LEVELS (Start Screen):\n" +
+                  "   * 3 Buttons available: Easy, Medium, Hard.\n" +
+                  "   * Higher difficulty increases the amount of rocks on the board.\n" +
+                  "   * Start screen clearly displays W,A,S,D controls and instructions \n" +
+                  "     about the black rocks and colorful food.\n" +
+                  "\n" +
+                  "5. SCORE & HIGHSCORE:\n" +
+                  "   * Tracks current score during gameplay.\n" +
+                  "   * Automatically saves the maximum score achieved and displays it \n" +
+                  "     on the screen when the player dies.\n" +
+                  "\n" +
+                  "6. PAUSE / RESUME:\n" +
+                  "   * A dedicated Stop (Pause) and Resume button is located in the corner \n" +
+                  "     of the screen to control gameplay flow.\n" +
+                  "=================================================="
+        );
+        instructionsText.setFont(new Font("Arial", Font.PLAIN, 16));
+        instructionsText.setEditable(false);
+        instructionsText.setOpaque(false);
+        instructionsText.setMargin(new Insets(30, 30, 30, 30));
+        JButton backButton = new JButton("חזרה לתפריט הראשי");
+        backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        backButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "MENU");
+        });
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.add(backButton);
+        panel.add(new JScrollPane(instructionsText), BorderLayout.CENTER);
+        panel.add(bottomPanel, BorderLayout.SOUTH);
+        return panel;
+    }
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new GameFrame().setVisible(true);
+        });
+    }
+}
