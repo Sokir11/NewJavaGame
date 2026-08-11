@@ -10,7 +10,7 @@ public class Main {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            JFrame window = new JFrame("Snake / Robot Game");
+            JFrame window = new JFrame("ROBOT GAME");
             window.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
             window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             window.setResizable(false);
@@ -42,7 +42,7 @@ public class Main {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 36));
         titleLabel.setForeground(Color.WHITE);
 
-        // בחירת רמות קושי (עונה על דרישת התוספות במטלה)
+        // בחירת רמות קושי
         JButton easyButton = new JButton("Easy (Less rocks)");
         JButton mediumButton = new JButton("Mid");
         JButton hardButton = new JButton("Hard (Many rocks)");
@@ -84,7 +84,7 @@ public class Main {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
 
-        // מdirections for player
+        // directions for player
         JTextArea instructionsText = new JTextArea(
                         "==================================================\n" +
                         "                              ROBOT GAME\n" +

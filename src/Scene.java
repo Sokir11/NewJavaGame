@@ -16,6 +16,8 @@ public class Scene extends JPanel {
     private Color foodColor;
     private ArrayList<Rectangle> rocks;
     private Random random;
+    public static final int PLAYER_X=150;
+    public static final int PLAYER_Y=150;
 
     public void setDirection(Integer direction) {
         this.direction = direction;
@@ -34,6 +36,22 @@ public class Scene extends JPanel {
 
         this.setBounds(x, y, width, height);
 
+        // --- הוספת כפתור חזרה לתפריט כאן בדיוק ---
+        this.setLayout(new BorderLayout());
+
+        JButton backButton = new JButton("Back to Menu");
+        backButton.setFocusable(false);
+        backButton.addActionListener(e -> {
+            isRunning = false;
+            cardLayout.show(mainPanel, "MENU");
+        });
+
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        topPanel.setOpaque(false);
+        topPanel.add(backButton);
+        this.add(topPanel, BorderLayout.NORTH);
+        // ----------------------------------------
+
         this.random = new Random();
         this.rocks = new ArrayList<>();
 
@@ -46,12 +64,12 @@ public class Scene extends JPanel {
     private void initGameElements() {
         this.score = 0;
 
-        this.player = new Player(150, 150);
+        this.player = new Player(PLAYER_X, PLAYER_Y);
 
         generateFood();
         generateRocks();
     }
-
+    // GENERATES FOOD RANDOMLY
     private void generateFood() {
 
         int fx = random.nextInt(width - 50);
@@ -60,36 +78,71 @@ public class Scene extends JPanel {
         food = new Point(fx, fy);
 
         foodColor = new Color(
-                random.nextInt(200) + 55,
-                random.nextInt(200) + 55,
-                random.nextInt(200) + 55
-        );
+                random.nextInt(150) + 55,
+                random.nextInt(150) + 55,
+                random.nextInt(150) + 55);
     }
-
+    // ROCKS
+    // GENERATES ROCKS BASED ON DIFFICULTY AND PREVENTS THEM FROM OVERLAPPING EACH OTHER OR THE PLAYER
     private void generateRocks() {
         int rockCount=0;
         rocks.clear();
 
+        // RANDOMIZES THE AMOUNT OF ROCKS FOR EACH GAME DIFFICULTY MODE
         if(difficulty==1){ rockCount = random.nextInt(5,9);}
         if(difficulty==2){ rockCount = random.nextInt(10,14);}
         if(difficulty==3){ rockCount = random.nextInt(14,18);}
 
+        // CREATES A RECTANGLE REPRESENTING THE INITIAL PLAYER COLLISION BOX
+        Rectangle playerStartRect = new Rectangle(PLAYER_X - 15, PLAYER_Y, 40, 50);
+
+        // LOOP TO CREATE EACH ROCK INDIVIDUALLY
         for (int i = 0; i < rockCount; i++) {
 
+            // GENERATES RANDOM COORDINATES FOR THE ROCK
             int rx = random.nextInt(width - 100);
             int ry = random.nextInt(height - 100);
+            Rectangle newRock = new Rectangle(rx, ry, 40, 40);
 
-            rocks.add(new Rectangle(rx, ry, 40, 40));
+            boolean overlaps = true;
+
+            // KEEPS GENERATING NEW COORDINATES WHILE THE ROCK OVERLAPS WITH THE PLAYER OR OTHER ROCKS
+            while (overlaps) {
+                overlaps = false;
+
+                // CHECKS IF THE ROCK HITS THE PLAYER
+                if (newRock.intersects(playerStartRect)) {
+                    overlaps = true;
+                } else {
+                    // CHECKS IF THE ROCK HITS ANY ALREADY EXISTING ROCK
+                    for (Rectangle existingRock : rocks) {
+                        if (newRock.intersects(existingRock)) {
+                            overlaps = true;
+                            break;
+                        }
+                    }
+                }
+
+                // IF THERE IS AN OVERLAP, GENERATE NEW RANDOM COORDINATES
+                if (overlaps) {
+                    rx = random.nextInt(width - 100);
+                    ry = random.nextInt(height - 100);
+                    newRock = new Rectangle(rx, ry, 40, 40);
+                }
+            }
+
+            // ADDS THE VALID SAFE ROCK TO THE ROCKS LIST
+            rocks.add(newRock);
         }
     }
-//game start
+    //game start
     public void startGame() {
         if (!isRunning) {
             isRunning = true;
             mainGameLoop();
         }
     }
-//player movement
+    //player movement
     private void mainGameLoop() {
         Thread gameThread = new Thread(() -> {
             while (isRunning) {
@@ -155,6 +208,11 @@ public class Scene extends JPanel {
                             score = 0;
                             player = new Player(150, 150);
                             direction = null;
+
+                            // ג'نرור מחדש של האבנים והאוכל עם הפסילה
+                            generateRocks();
+                            generateFood();
+
                             break;
                         }
                     }
@@ -219,7 +277,7 @@ public class Scene extends JPanel {
         }
 
         // Score
-            g.setColor(Color.BLACK);
+        g.setColor(Color.BLACK);
 
         g.setFont(
                 new Font(
