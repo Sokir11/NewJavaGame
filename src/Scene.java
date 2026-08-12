@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.prefs.Preferences;
 
 public class Scene extends JPanel {
 
@@ -16,8 +17,13 @@ public class Scene extends JPanel {
     private Color foodColor;
     private ArrayList<Rectangle> rocks;
     private Random random;
-    public static final int PLAYER_X=150;
-    public static final int PLAYER_Y=150;
+
+    // משתנים לשמירת השיא
+    private Preferences prefs = Preferences.userNodeForPackage(Scene.class);
+    private int highScore = prefs.getInt("highScore", 0);
+
+    public static final int PLAYER_X = 150;
+    public static final int PLAYER_Y = 150;
 
     public void setDirection(Integer direction) {
         this.direction = direction;
@@ -27,16 +33,13 @@ public class Scene extends JPanel {
         this.difficulty = difficulty;
         initGameElements();
     }
-    //builder
+
     public Scene(int x, int y, int width, int height,
                  CardLayout cardLayout, JPanel mainPanel) {
 
         this.width = width;
         this.height = height;
-
         this.setBounds(x, y, width, height);
-
-        // --- הוספת כפתור חזרה לתפריט כאן בדיוק ---
         this.setLayout(new BorderLayout());
 
         JButton backButton = new JButton("Back to Menu");
@@ -50,7 +53,6 @@ public class Scene extends JPanel {
         topPanel.setOpaque(false);
         topPanel.add(backButton);
         this.add(topPanel, BorderLayout.NORTH);
-        // ----------------------------------------
 
         this.random = new Random();
         this.rocks = new ArrayList<>();
@@ -63,58 +65,46 @@ public class Scene extends JPanel {
 
     private void initGameElements() {
         this.score = 0;
-
         this.player = new Player(PLAYER_X, PLAYER_Y);
-
         generateFood();
         generateRocks();
     }
-    // GENERATES FOOD RANDOMLY
-    private void generateFood() {
 
+    private void generateFood() {
         int fx = random.nextInt(width - 50);
         int fy = random.nextInt(height - 50);
-
         food = new Point(fx, fy);
-
         foodColor = new Color(
                 random.nextInt(150) + 55,
                 random.nextInt(150) + 55,
                 random.nextInt(150) + 55);
     }
-    // ROCKS
-    // GENERATES ROCKS BASED ON DIFFICULTY AND PREVENTS THEM FROM OVERLAPPING EACH OTHER OR THE PLAYER
+
     private void generateRocks() {
-        int rockCount=0;
+        int rockCount = 0;
         rocks.clear();
 
-        // RANDOMIZES THE AMOUNT OF ROCKS FOR EACH GAME DIFFICULTY MODE
-        if(difficulty==1){ rockCount = random.nextInt(5,9);}
-        if(difficulty==2){ rockCount = random.nextInt(10,14);}
-        if(difficulty==3){ rockCount = random.nextInt(14,18);}
+        if (difficulty == 1) { rockCount = random.nextInt(5, 9); }
+        if (difficulty == 2) { rockCount = random.nextInt(10, 14); }
+        if (difficulty == 3) { rockCount = random.nextInt(14, 18); }
 
-        // CREATES A RECTANGLE REPRESENTING THE INITIAL PLAYER COLLISION BOX
-        Rectangle playerStartRect = new Rectangle(PLAYER_X - 15, PLAYER_Y, 40, 50);
+        Player tempPlayer = new Player(PLAYER_X, PLAYER_Y);
+        Rectangle playerHeadStart = tempPlayer.getHeadRect();
+        Rectangle playerBodyStart = tempPlayer.getBodyRect();
 
-        // LOOP TO CREATE EACH ROCK INDIVIDUALLY
         for (int i = 0; i < rockCount; i++) {
-
-            // GENERATES RANDOM COORDINATES FOR THE ROCK
             int rx = random.nextInt(width - 100);
             int ry = random.nextInt(height - 100);
             Rectangle newRock = new Rectangle(rx, ry, 40, 40);
 
             boolean overlaps = true;
 
-            // KEEPS GENERATING NEW COORDINATES WHILE THE ROCK OVERLAPS WITH THE PLAYER OR OTHER ROCKS
             while (overlaps) {
                 overlaps = false;
 
-                // CHECKS IF THE ROCK HITS THE PLAYER
-                if (newRock.intersects(playerStartRect)) {
+                if (newRock.intersects(playerHeadStart) || newRock.intersects(playerBodyStart)) {
                     overlaps = true;
                 } else {
-                    // CHECKS IF THE ROCK HITS ANY ALREADY EXISTING ROCK
                     for (Rectangle existingRock : rocks) {
                         if (newRock.intersects(existingRock)) {
                             overlaps = true;
@@ -123,7 +113,6 @@ public class Scene extends JPanel {
                     }
                 }
 
-                // IF THERE IS AN OVERLAP, GENERATE NEW RANDOM COORDINATES
                 if (overlaps) {
                     rx = random.nextInt(width - 100);
                     ry = random.nextInt(height - 100);
@@ -131,85 +120,83 @@ public class Scene extends JPanel {
                 }
             }
 
-            // ADDS THE VALID SAFE ROCK TO THE ROCKS LIST
             rocks.add(newRock);
         }
     }
-    //game start
+
     public void startGame() {
         if (!isRunning) {
             isRunning = true;
             mainGameLoop();
         }
     }
-    //player movement
+
     private void mainGameLoop() {
         Thread gameThread = new Thread(() -> {
             while (isRunning) {
                 try {
                     Thread.sleep(35);
+
+                    int speed = difficulty + 3;
                     if (direction != null) {
                         if (direction == 0) { // Right
-                            if (player.getX() < width - 5) {
-                                player.moveRight(difficulty + 3);
+                            if (player.getX() < width - 25) {
+                                player.moveRight(speed);
                             } else {
                                 direction = 1;
                             }
                         } else if (direction == 1) { // Left
-                            if (player.getX() >= 5) {
-                                player.moveLeft(difficulty + 3);
+                            if (player.getX() >= 25) {
+                                player.moveLeft(speed);
                             } else {
                                 direction = 0;
                             }
                         } else if (direction == 2) { // Down
-                            if (player.getY() < height - 5) {
-                                player.moveDown(difficulty + 3);
+                            if (player.getY() < height - 55) {
+                                player.moveDown(speed);
                             } else {
                                 direction = 3;
                             }
                         } else if (direction == 3) { // Up
-                            if (player.getY() >= 5) {
-                                player.moveUp(difficulty + 3);
+                            if (player.getY() >= 25) {
+                                player.moveUp(speed);
                             } else {
                                 direction = 2;
                             }
                         }
                     }
-                    Rectangle playerRect =
-                            new Rectangle(
-                                    player.getX() - 15,
-                                    player.getY(),
-                                    40,
-                                    50
-                            );
 
-                    Rectangle foodRect =
-                            new Rectangle(
-                                    food.x,
-                                    food.y,
-                                    20,
-                                    20
-                            );
+                    // PLAYER HITBOX
+                    Rectangle headRect = player.getHeadRect();
+                    Rectangle bodyRect = player.getBodyRect();
+                    Rectangle foodRect = new Rectangle(food.x, food.y, 20, 20);
 
                     // Food collision
-                    if (playerRect.intersects(foodRect)) {
+                    if (headRect.intersects(foodRect) || bodyRect.intersects(foodRect)) {
                         score++;
                         generateFood();
                     }
 
                     // Rock collision
                     for (Rectangle rock : rocks) {
-                        //Losers toast
-                        if (playerRect.intersects(rock)) {
-                            JOptionPane.showMessageDialog(
-                                    this,
-                                    "YOU HIT A ROCK!!! \nYour score: " + score);
+                        if (headRect.intersects(rock) || bodyRect.intersects(rock)) {
+
+                            if (score > highScore) {
+                                highScore = score;
+                                prefs.putInt("highScore", highScore);
+                                JOptionPane.showMessageDialog(
+                                        this,
+                                        "NEW HIGH SCORE! 🏆\nYour new record: " + highScore);
+                            } else {
+                                JOptionPane.showMessageDialog(
+                                        this,
+                                        "YOU HIT A ROCK!!! \nYour score: " + score + "\nHigh Score: " + highScore);
+                            }
 
                             score = 0;
-                            player = new Player(150, 150);
+                            player = new Player(PLAYER_X, PLAYER_Y);
                             direction = null;
 
-                            // ג'نرור מחדש של האבנים והאוכל עם הפסילה
                             generateRocks();
                             generateFood();
 
@@ -229,69 +216,29 @@ public class Scene extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        // Background
         g.setColor(Color.WHITE);
         g.fillRect(0, 0, width, height);
 
-        // Rocks
         g.setColor(Color.BLACK);
-
         for (Rectangle rock : rocks) {
-
-            g.fillRect(
-                    rock.x,
-                    rock.y,
-                    rock.width,
-                    rock.height
-            );
-
+            g.fillRect(rock.x, rock.y, rock.width, rock.height);
             g.setColor(Color.BLACK);
-
-            g.drawRect(
-                    rock.x,
-                    rock.y,
-                    rock.width,
-                    rock.height
-            );
-
+            g.drawRect(rock.x, rock.y, rock.width, rock.height);
             g.setColor(Color.DARK_GRAY);
         }
 
-        // Food
         if (food != null && foodColor != null) {
-
             g.setColor(foodColor);
-
-            g.fillOval(
-                    food.x,
-                    food.y,
-                    20,
-                    20
-            );
+            g.fillOval(food.x, food.y, 20, 20);
         }
 
-        // Player
         if (player != null) {
-
             player.draw(g);
         }
 
-        // Score
         g.setColor(Color.BLACK);
-
-        g.setFont(
-                new Font(
-                        "Arial",
-                        Font.BOLD,
-                        20
-                )
-        );
-
-        g.drawString(
-                "Score: " + score,
-                20,
-                30
-        );
-
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        g.drawString("Score: " + score, 20, 30);
+        g.drawString("High Score: " + highScore, 20, 60);
     }
 }
