@@ -132,87 +132,90 @@ public class Scene extends JPanel {
     }
 
     private void mainGameLoop() {
-        Thread gameThread = new Thread(() -> {
-            while (isRunning) {
-                try {
-                    Thread.sleep(35);
+            Thread gameThread = new Thread(() -> {
+                while (isRunning) {
+                    try {
+                        Thread.sleep(35);
 
-                    int speed = difficulty + 3;
-                    if (direction != null) {
-                        if (direction == 0) { // Right
-                            if (player.getX() < width - 25) {
-                                player.moveRight(speed);
-                            } else {
-                                direction = 1;
-                            }
-                        } else if (direction == 1) { // Left
-                            if (player.getX() >= 25) {
-                                player.moveLeft(speed);
-                            } else {
-                                direction = 0;
-                            }
-                        } else if (direction == 2) { // Down
-                            if (player.getY() < height - 55) {
-                                player.moveDown(speed);
-                            } else {
-                                direction = 3;
-                            }
-                        } else if (direction == 3) { // Up
-                            if (player.getY() >= 25) {
-                                player.moveUp(speed);
-                            } else {
-                                direction = 2;
+                        int speed = difficulty + 3;
+                        if (direction != null) {
+                            if (direction == 0) { // Right
+                                if (player.getX() < width - 25) {
+                                    player.moveRight(speed);
+                                } else {
+                                    direction = 1;
+                                }
+                            } else if (direction == 1) { // Left
+                                if (player.getX() >= 25) {
+                                    player.moveLeft(speed);
+                                } else {
+                                    direction = 0;
+                                }
+                            } else if (direction == 2) { // Down
+                                if (player.getY() < height - 55) {
+                                    player.moveDown(speed);
+                                } else {
+                                    direction = 3;
+                                }
+                            } else if (direction == 3) { // Up
+                                if (player.getY() >= 25) {
+                                    player.moveUp(speed);
+                                } else {
+                                    direction = 2;
+                                }
                             }
                         }
-                    }
 
-                    // PLAYER HITBOX
-                    Rectangle headRect = player.getHeadRect();
-                    Rectangle bodyRect = player.getBodyRect();
-                    Rectangle foodRect = new Rectangle(food.x, food.y, 20, 20);
+                        // PLAYER HITBOX
+                        Rectangle headRect = player.getHeadRect();
+                        Rectangle bodyRect = player.getBodyRect();
+                        Rectangle foodRect = new Rectangle(food.x, food.y, 20, 20);
 
-                    // Food collision
-                    if (headRect.intersects(foodRect) || bodyRect.intersects(foodRect)) {
-                        score++;
-                        generateFood();
-                    }
-
-                    // Rock collision
-                    for (Rectangle rock : rocks) {
-                        if (headRect.intersects(rock) || bodyRect.intersects(rock)) {
-
-                            if (score > highScore) {
-                                highScore = score;
-                                prefs.putInt("highScore", highScore);
-                                JOptionPane.showMessageDialog(
-                                        this,
-                                        "NEW HIGH SCORE! 🏆\nYour new record: " + highScore);
-                            } else {
-                                JOptionPane.showMessageDialog(
-                                        this,
-                                        "YOU HIT A ROCK!!! \nYour score: " + score + "\nHigh Score: " + highScore);
-                            }
-
-                            score = 0;
-                            player = new Player(PLAYER_X, PLAYER_Y);
-                            direction = null;
-
-                            generateRocks();
+                        // Food collision
+                        if (headRect.intersects(foodRect) || bodyRect.intersects(foodRect)) {
+                            score++;
                             generateFood();
-
-                            break;
                         }
+
+                        // Rock collision - בדיקה מדויקת עם מרווח קטן (Padding) למניעת פסילות שווא בשלבים גבוהים
+                        for (Rectangle rock : rocks) {
+                            // מקטינים מעט את שטח הפגיעה של האבן כדי שהנחש ייגע בה ממש ולא "באוויר" לידה
+                            Rectangle preciseRock = new Rectangle(rock.x + 4, rock.y + 4, rock.width - 8, rock.height - 8);
+
+                            boolean hitRock = headRect.intersects(preciseRock) || bodyRect.intersects(preciseRock);
+
+                            if (hitRock) {
+                                if (score > highScore) {
+                                    highScore = score;
+                                    prefs.putInt("highScore", highScore);
+                                    JOptionPane.showMessageDialog(
+                                            this,
+                                            "NEW HIGH SCORE! 🏆\nYour new record: " + highScore);
+                                } else {
+                                    JOptionPane.showMessageDialog(
+                                            this,
+                                            "YOU HIT A ROCK!!! \nYour score: " + score + "\nHigh Score: " + highScore);
+                                }
+
+                                score = 0;
+                                player = new Player(PLAYER_X, PLAYER_Y);
+                                direction = null;
+
+                                generateRocks();
+                                generateFood();
+
+                                break;
+                            }
+                        }
+
+                        repaint();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-
-                    repaint();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
-            }
-        });
-        gameThread.start();
-    }
-
+            });
+            gameThread.start();
+        }
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
