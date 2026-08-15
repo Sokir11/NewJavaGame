@@ -1,3 +1,4 @@
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -183,7 +184,6 @@ public class Scene extends JPanel {
                     break;
                 }
             }
-
             // =========================
             // CHECK PLAYER
             // =========================
@@ -780,3 +780,4 @@ public class Scene extends JPanel {
         );
     }
 }
+
