@@ -38,6 +38,7 @@ public class Player {
     // =========================
     // HEAD HITBOX
     // =========================
+
     public Rectangle getHeadRect() {
         return new Rectangle(
                 this.x,
@@ -50,6 +51,7 @@ public class Player {
     // =========================
     // BODY HITBOX
     // =========================
+
     public Rectangle getBodyRect() {
         int shoulderWidth = SIZE / 2;
 
@@ -62,17 +64,71 @@ public class Player {
     }
 
     // =========================
+    // CHECK FOOD COLLISION
+    // =========================
+
+    public boolean touchesFood(Rectangle food) {
+
+        Rectangle head = getHeadRect();
+        Rectangle body = getBodyRect();
+
+        int shoulderWidth = SIZE / 2;
+
+        int bodyX = this.x - shoulderWidth;
+        int bodyY = this.y + SIZE;
+
+        int bodyWidth = SIZE + shoulderWidth + shoulderWidth;
+        int bodyHeight = SIZE + shoulderWidth + shoulderWidth;
+
+        // LEFT ARM
+        Rectangle leftArm = new Rectangle(
+                bodyX - 8,
+                bodyY + 4,
+                8,
+                bodyHeight - 8
+        );
+
+        // RIGHT ARM
+        Rectangle rightArm = new Rectangle(
+                bodyX + bodyWidth,
+                bodyY + 4,
+                8,
+                bodyHeight - 8
+        );
+
+        // LEFT LEG
+        Rectangle leftLeg = new Rectangle(
+                bodyX + 3,
+                bodyY + bodyHeight,
+                7,
+                15
+        );
+
+        // RIGHT LEG
+        Rectangle rightLeg = new Rectangle(
+                bodyX + bodyWidth - 10,
+                bodyY + bodyHeight,
+                7,
+                15
+        );
+
+        return head.intersects(food)
+                || body.intersects(food)
+                || leftArm.intersects(food)
+                || rightArm.intersects(food)
+                || leftLeg.intersects(food)
+                || rightLeg.intersects(food);
+    }
+
+    // =========================
     // DRAW ROBOT
     // =========================
+
     public void draw(Graphics graphics) {
 
-        // -------------------------
-        // HEAD COLOR
-        // -------------------------
-        // כאן קובעים את הצבע של הראש
+        // HEAD
         graphics.setColor(Color.CYAN);
 
-        // HEAD
         graphics.fillRect(
                 this.x,
                 this.y,
@@ -80,9 +136,7 @@ public class Player {
                 SIZE
         );
 
-        // -------------------------
         // BODY
-        // -------------------------
         int shoulderWidth = SIZE / 2;
 
         int bodyX = this.x - shoulderWidth;
@@ -90,8 +144,8 @@ public class Player {
         int bodyWidth = SIZE + shoulderWidth + shoulderWidth;
         int bodyHeight = SIZE + shoulderWidth + shoulderWidth;
 
-        //כאן קובעים את הצבע של הגוף
         graphics.setColor(Color.CYAN);
+
         graphics.fillRect(
                 bodyX,
                 bodyY,
@@ -99,10 +153,7 @@ public class Player {
                 bodyHeight
         );
 
-        // -------------------------
-        // ARMS COLOR
-        // -------------------------
-        // כאן קובעים את הצבע של שתי הידיים
+        // ARMS
         graphics.setColor(Color.BLUE);
 
         // LEFT ARM
@@ -121,10 +172,7 @@ public class Player {
                 bodyHeight - 8
         );
 
-        // -------------------------
         // LEGS
-        // -------------------------
-        // כאן קובעים את הצבע של שתי רגליים
         graphics.setColor(Color.BLUE);
 
         // LEFT LEG
@@ -147,6 +195,7 @@ public class Player {
     // =========================
     // FULL ROBOT BOUNDS
     // =========================
+
     public Rectangle getBounds() {
 
         int shoulderWidth = SIZE / 2;

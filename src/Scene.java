@@ -1,4 +1,3 @@
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -130,13 +129,8 @@ public class Scene extends JPanel {
 
     private void generateFood() {
 
-        /*
-         * אנחנו ממשיכים להגריל מיקום
-         * עד שמוצאים מקום חוקי.
-         */
         while (true) {
 
-            // מיקום אקראי
             int fx =
                     random.nextInt(
                             width - 50
@@ -147,7 +141,6 @@ public class Scene extends JPanel {
                             height - 50
                     );
 
-            // גודל האוכל
             Rectangle foodRect =
                     new Rectangle(
                             fx,
@@ -162,12 +155,6 @@ public class Scene extends JPanel {
             // CHECK ROCKS
             // =========================
 
-            /*
-             * יוצרים אזור בטוח סביב כל אבן.
-             *
-             * אם האוכל נמצא בתוך האזור הזה,
-             * הוא יוגרל מחדש.
-             */
             for (Rectangle rock : rocks) {
 
                 Rectangle rockSafeArea =
@@ -184,19 +171,11 @@ public class Scene extends JPanel {
                     break;
                 }
             }
+
             // =========================
             // CHECK PLAYER
             // =========================
 
-            /*
-             * בודקים שהאוכל לא נוצר על
-             * שום חלק של הרובוט:
-             *
-             * ראש
-             * גוף
-             * ידיים
-             * רגליים
-             */
             if (validPosition && player != null) {
 
                 if (playerTouchesRock(
@@ -214,13 +193,11 @@ public class Scene extends JPanel {
 
             if (validPosition) {
 
-                // שומרים את המיקום
                 food = new Point(
                         fx,
                         fy
                 );
 
-                // מייצרים צבע אקראי
                 foodColor = new Color(
                         random.nextInt(150) + 55,
                         random.nextInt(150) + 55,
@@ -255,7 +232,6 @@ public class Scene extends JPanel {
             rockCount = random.nextInt(14, 18);
         }
 
-        // שחקן זמני במיקום ההתחלתי
         Player tempPlayer =
                 new Player(
                         PLAYER_X,
@@ -292,9 +268,7 @@ public class Scene extends JPanel {
 
                 overlaps = false;
 
-                // =========================
                 // DON'T PLACE ROCK ON PLAYER
-                // =========================
 
                 if (playerTouchesRock(
                         tempPlayer,
@@ -304,9 +278,7 @@ public class Scene extends JPanel {
                     overlaps = true;
                 }
 
-                // =========================
                 // DON'T PLACE ROCK ON ROCK
-                // =========================
 
                 if (!overlaps) {
 
@@ -320,9 +292,7 @@ public class Scene extends JPanel {
                     }
                 }
 
-                // =========================
                 // GENERATE NEW POSITION
-                // =========================
 
                 if (overlaps) {
 
@@ -366,9 +336,7 @@ public class Scene extends JPanel {
         Rectangle bodyRect =
                 p.getBodyRect();
 
-        // =========================
         // BODY DIMENSIONS
-        // =========================
 
         int shoulderWidth =
                 Player.SIZE / 2;
@@ -385,9 +353,7 @@ public class Scene extends JPanel {
         int bodyHeight =
                 Player.SIZE + shoulderWidth + shoulderWidth;
 
-        // =========================
         // LEFT ARM
-        // =========================
 
         Rectangle leftArmRect =
                 new Rectangle(
@@ -397,9 +363,7 @@ public class Scene extends JPanel {
                         bodyHeight - 8
                 );
 
-        // =========================
         // RIGHT ARM
-        // =========================
 
         Rectangle rightArmRect =
                 new Rectangle(
@@ -409,9 +373,7 @@ public class Scene extends JPanel {
                         bodyHeight - 8
                 );
 
-        // =========================
         // LEFT LEG
-        // =========================
 
         Rectangle leftLegRect =
                 new Rectangle(
@@ -421,9 +383,7 @@ public class Scene extends JPanel {
                         15
                 );
 
-        // =========================
         // RIGHT LEG
-        // =========================
 
         Rectangle rightLegRect =
                 new Rectangle(
@@ -433,9 +393,7 @@ public class Scene extends JPanel {
                         15
                 );
 
-        // =========================
         // CHECK ALL PARTS
-        // =========================
 
         return headRect.intersects(rock)
                 || bodyRect.intersects(rock)
@@ -465,25 +423,32 @@ public class Scene extends JPanel {
 
     private int getSleepTime() {
 
-        /*
-         * השחקן תמיד זז פיקסל אחד.
-         *
-         * רק הזמן בין התנועות משתנה:
-         *
-         * Easy = 10ms
-         * Mid  = 8ms
-         * Hard = 4ms
-         */
-
         if (difficulty == 1) {
             return 10;
         }
 
         if (difficulty == 2) {
-            return 8;
+            return 6;
         }
 
-        return 4;
+        return 2;
+    }
+
+    // =========================
+    // GET PLAYER SPEED
+    // =========================
+
+    private int getPlayerSpeed() {
+
+        if (difficulty == 1) {
+            return 1;
+        }
+
+        if (difficulty == 2) {
+            return 1;
+        }
+
+        return 1;
     }
 
     // =========================
@@ -499,10 +464,6 @@ public class Scene extends JPanel {
 
                         try {
 
-                            // =========================
-                            // WAIT ACCORDING TO DIFFICULTY
-                            // =========================
-
                             Thread.sleep(
                                     getSleepTime()
                             );
@@ -511,10 +472,6 @@ public class Scene extends JPanel {
                             // PLAYER MOVEMENT
                             // =========================
 
-                            /*
-                             * השחקן תמיד זז רק פיקסל אחד.
-                             */
-
                             if (direction != null) {
 
                                 if (direction == 0) {
@@ -522,7 +479,9 @@ public class Scene extends JPanel {
 
                                     if (player.getX() < width - 25) {
 
-                                        player.moveRight(1);
+                                        player.moveRight(
+                                                getPlayerSpeed()
+                                        );
 
                                     } else {
 
@@ -534,7 +493,9 @@ public class Scene extends JPanel {
 
                                     if (player.getX() >= 25) {
 
-                                        player.moveLeft(1);
+                                        player.moveLeft(
+                                                getPlayerSpeed()
+                                        );
 
                                     } else {
 
@@ -546,7 +507,9 @@ public class Scene extends JPanel {
 
                                     if (player.getY() < height - 55) {
 
-                                        player.moveDown(1);
+                                        player.moveDown(
+                                                getPlayerSpeed()
+                                        );
 
                                     } else {
 
@@ -558,7 +521,9 @@ public class Scene extends JPanel {
 
                                     if (player.getY() >= 25) {
 
-                                        player.moveUp(1);
+                                        player.moveUp(
+                                                getPlayerSpeed()
+                                        );
 
                                     } else {
 
@@ -579,8 +544,7 @@ public class Scene extends JPanel {
                                             20
                                     );
 
-                            if (player.getHeadRect().intersects(foodRect)
-                                    || player.getBodyRect().intersects(foodRect)) {
+                            if (player.touchesFood(foodRect)) {
 
                                 score++;
 
@@ -780,4 +744,3 @@ public class Scene extends JPanel {
         );
     }
 }
-
