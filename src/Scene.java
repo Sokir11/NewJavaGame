@@ -4,6 +4,13 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.prefs.Preferences;
 
+// ==========================================
+// IMPORTS FOR MUSIC
+// ==========================================
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+
 public class Scene extends JPanel {
 
     private Player player;
@@ -18,7 +25,15 @@ public class Scene extends JPanel {
     private ArrayList<Rectangle> rocks;
     private Random random;
 
-    // משתנים לשמירת השיא
+    // ==========================================
+    // MUSIC
+    // ==========================================
+    private Clip music;
+
+    // ==========================================
+    // HIGH SCORE
+    // ==========================================
+
     private Preferences prefs =
             Preferences.userNodeForPackage(Scene.class);
 
@@ -28,26 +43,26 @@ public class Scene extends JPanel {
     public static final int PLAYER_X = 150;
     public static final int PLAYER_Y = 150;
 
-    // =========================
+    // ==========================================
     // CHANGE DIRECTION
-    // =========================
+    // ==========================================
 
     public void setDirection(Integer direction) {
         this.direction = direction;
     }
 
-    // =========================
+    // ==========================================
     // CHANGE DIFFICULTY
-    // =========================
+    // ==========================================
 
     public void setDifficulty(int difficulty) {
         this.difficulty = difficulty;
         initGameElements();
     }
 
-    // =========================
+    // ==========================================
     // CONSTRUCTOR
-    // =========================
+    // ==========================================
 
     public Scene(int x, int y, int width, int height,
                  CardLayout cardLayout, JPanel mainPanel) {
@@ -69,8 +84,19 @@ public class Scene extends JPanel {
 
         backButton.setFocusable(false);
 
+        // ==========================================
+        // BACK TO MENU
+        // ==========================================
+
         backButton.addActionListener(e -> {
+
+            // עוצרים את המשחק
             isRunning = false;
+
+            // עוצרים את המוזיקה
+            stopMusic();
+
+            // חוזרים לתפריט
             cardLayout.show(mainPanel, "MENU");
         });
 
@@ -105,9 +131,9 @@ public class Scene extends JPanel {
         );
     }
 
-    // =========================
+    // ==========================================
     // INITIALIZE GAME
-    // =========================
+    // ==========================================
 
     private void initGameElements() {
 
@@ -123,9 +149,9 @@ public class Scene extends JPanel {
         generateRocks();
     }
 
-    // =========================
+    // ==========================================
     // GENERATE FOOD
-    // =========================
+    // ==========================================
 
     private void generateFood() {
 
@@ -151,9 +177,9 @@ public class Scene extends JPanel {
 
             boolean validPosition = true;
 
-            // =========================
+            // ==========================================
             // CHECK ROCKS
-            // =========================
+            // ==========================================
 
             for (Rectangle rock : rocks) {
 
@@ -172,9 +198,9 @@ public class Scene extends JPanel {
                 }
             }
 
-            // =========================
+            // ==========================================
             // CHECK PLAYER
-            // =========================
+            // ==========================================
 
             if (validPosition && player != null) {
 
@@ -187,9 +213,9 @@ public class Scene extends JPanel {
                 }
             }
 
-            // =========================
+            // ==========================================
             // VALID POSITION
-            // =========================
+            // ==========================================
 
             if (validPosition) {
 
@@ -198,6 +224,7 @@ public class Scene extends JPanel {
                         fy
                 );
 
+                // צבע אקראי לאוכל
                 foodColor = new Color(
                         random.nextInt(150) + 55,
                         random.nextInt(150) + 55,
@@ -209,9 +236,9 @@ public class Scene extends JPanel {
         }
     }
 
-    // =========================
+    // ==========================================
     // GENERATE ROCKS
-    // =========================
+    // ==========================================
 
     private void generateRocks() {
 
@@ -238,9 +265,9 @@ public class Scene extends JPanel {
                         PLAYER_Y
                 );
 
-        // =========================
+        // ==========================================
         // CREATE ROCKS
-        // =========================
+        // ==========================================
 
         for (int i = 0; i < rockCount; i++) {
 
@@ -268,7 +295,9 @@ public class Scene extends JPanel {
 
                 overlaps = false;
 
+                // ==========================================
                 // DON'T PLACE ROCK ON PLAYER
+                // ==========================================
 
                 if (playerTouchesRock(
                         tempPlayer,
@@ -278,7 +307,9 @@ public class Scene extends JPanel {
                     overlaps = true;
                 }
 
+                // ==========================================
                 // DON'T PLACE ROCK ON ROCK
+                // ==========================================
 
                 if (!overlaps) {
 
@@ -292,7 +323,9 @@ public class Scene extends JPanel {
                     }
                 }
 
+                // ==========================================
                 // GENERATE NEW POSITION
+                // ==========================================
 
                 if (overlaps) {
 
@@ -320,106 +353,175 @@ public class Scene extends JPanel {
         }
     }
 
-    // =========================
-    // CHECK PLAYER PARTS
-    // =========================
+    // ==========================================
+    // CHECK PLAYER PARTS (WITH DIFFICULTY HITBOX SHRINKING)
+    // ==========================================
 
     private boolean playerTouchesRock(
             Player p,
-            Rectangle rock) {
+            Rectangle targetRect) {
+
+        // ==========================================
+        // DIFFICULTY HITBOX ADJUSTMENT (SHRINKING)
+        // ==========================================
+        // רמה 1 (קלה): ההיטבוקס מוקטן כדי לתת יותר "סלחנות" לשחקן
+        // רמה 2 (בינונית): הקטנה קטנה יותר
+        // רמה 3 (קשה): ללא הקטנה (היטבוקס מלא ומדויק)
+        int shrinkFactor = 0;
+        if (difficulty == 1) {
+            shrinkFactor = 2; // מקטין בשני הצדדים בשווה (פיקסל אחד מכל צד לשמירה על מרכוז)
+        } else if (difficulty == 2) {
+            shrinkFactor = 1;
+        } else if (difficulty == 3) {
+            shrinkFactor = 0;
+        }
 
         // HEAD
-        Rectangle headRect =
-                p.getHeadRect();
-
-        // BODY
-        Rectangle bodyRect =
-                p.getBodyRect();
+        Rectangle headRect = p.getHeadRect();
+        Rectangle currentHead = new Rectangle(
+                headRect.x + (shrinkFactor / 2),
+                headRect.y + (shrinkFactor / 2),
+                Math.max(1, headRect.width - shrinkFactor),
+                Math.max(1, headRect.height - shrinkFactor)
+        );
 
         // BODY DIMENSIONS
+        int shoulderWidth = Player.SIZE / 2;
+        int bodyX = p.getX() - shoulderWidth;
+        int bodyY = p.getY() + Player.SIZE;
+        int bodyWidth = Player.SIZE + shoulderWidth + shoulderWidth;
+        int bodyHeight = Player.SIZE + shoulderWidth + shoulderWidth;
 
-        int shoulderWidth =
-                Player.SIZE / 2;
-
-        int bodyX =
-                p.getX() - shoulderWidth;
-
-        int bodyY =
-                p.getY() + Player.SIZE;
-
-        int bodyWidth =
-                Player.SIZE + shoulderWidth + shoulderWidth;
-
-        int bodyHeight =
-                Player.SIZE + shoulderWidth + shoulderWidth;
+        Rectangle bodyRect = new Rectangle(bodyX, bodyY, bodyWidth, bodyHeight);
+        Rectangle currentBody = new Rectangle(
+                bodyRect.x + (shrinkFactor / 2),
+                bodyRect.y + (shrinkFactor / 2),
+                Math.max(1, bodyRect.width - shrinkFactor),
+                Math.max(1, bodyRect.height - shrinkFactor)
+        );
 
         // LEFT ARM
-
-        Rectangle leftArmRect =
-                new Rectangle(
-                        bodyX - 8,
-                        bodyY + 4,
-                        8,
-                        bodyHeight - 8
-                );
+        Rectangle leftArmRect = new Rectangle(
+                bodyX - 8,
+                bodyY + 4,
+                8,
+                bodyHeight - 8
+        );
+        Rectangle currentLeftArm = new Rectangle(
+                leftArmRect.x + (shrinkFactor / 2),
+                leftArmRect.y + (shrinkFactor / 2),
+                Math.max(1, leftArmRect.width - shrinkFactor),
+                Math.max(1, leftArmRect.height - shrinkFactor)
+        );
 
         // RIGHT ARM
-
-        Rectangle rightArmRect =
-                new Rectangle(
-                        bodyX + bodyWidth,
-                        bodyY + 4,
-                        8,
-                        bodyHeight - 8
-                );
+        Rectangle rightArmRect = new Rectangle(
+                bodyX + bodyWidth,
+                bodyY + 4,
+                8,
+                bodyHeight - 8
+        );
+        Rectangle currentRightArm = new Rectangle(
+                rightArmRect.x + (shrinkFactor / 2),
+                rightArmRect.y + (shrinkFactor / 2),
+                Math.max(1, rightArmRect.width - shrinkFactor),
+                Math.max(1, rightArmRect.height - shrinkFactor)
+        );
 
         // LEFT LEG
-
-        Rectangle leftLegRect =
-                new Rectangle(
-                        bodyX + 3,
-                        bodyY + bodyHeight,
-                        7,
-                        15
-                );
+        Rectangle leftLegRect = new Rectangle(
+                bodyX + 3,
+                bodyY + bodyHeight,
+                7,
+                15
+        );
+        Rectangle currentLeftLeg = new Rectangle(
+                leftLegRect.x + (shrinkFactor / 2),
+                leftLegRect.y + (shrinkFactor / 2),
+                Math.max(1, leftLegRect.width - shrinkFactor),
+                Math.max(1, leftLegRect.height - shrinkFactor)
+        );
 
         // RIGHT LEG
+        Rectangle rightLegRect = new Rectangle(
+                bodyX + bodyWidth - 10,
+                bodyY + bodyHeight,
+                7,
+                15
+        );
+        Rectangle currentRightLeg = new Rectangle(
+                rightLegRect.x + (shrinkFactor / 2),
+                rightLegRect.y + (shrinkFactor / 2),
+                Math.max(1, rightLegRect.width - shrinkFactor),
+                Math.max(1, rightLegRect.height - shrinkFactor)
+        );
 
-        Rectangle rightLegRect =
-                new Rectangle(
-                        bodyX + bodyWidth - 10,
-                        bodyY + bodyHeight,
-                        7,
-                        15
-                );
+        // ==========================================
+        // CHECK ALL PLAYER PARTS AGAINST TARGET
+        // ==========================================
 
-        // CHECK ALL PARTS
-
-        return headRect.intersects(rock)
-                || bodyRect.intersects(rock)
-                || leftArmRect.intersects(rock)
-                || rightArmRect.intersects(rock)
-                || leftLegRect.intersects(rock)
-                || rightLegRect.intersects(rock);
+        return currentHead.intersects(targetRect)
+                || currentBody.intersects(targetRect)
+                || currentLeftArm.intersects(targetRect)
+                || currentRightArm.intersects(targetRect)
+                || currentLeftLeg.intersects(targetRect)
+                || currentRightLeg.intersects(targetRect);
     }
 
-    // =========================
+    // ==========================================
+    // PLAY MUSIC
+    // ==========================================
+
+    private void playMusic() {
+
+        try {
+
+            AudioInputStream audioInputStream =
+                    AudioSystem.getAudioInputStream(
+                            getClass().getResource(
+                                    "/Overworld_Run.wav"
+                            )
+                    );
+
+            music = AudioSystem.getClip();
+            music.open(audioInputStream);
+            music.loop(Clip.LOOP_CONTINUOUSLY);
+            music.start();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ==========================================
+    // STOP MUSIC
+    // ==========================================
+
+    private void stopMusic() {
+
+        if (music != null) {
+            music.stop();
+            music.close();
+            music = null;
+        }
+    }
+
+    // ==========================================
     // START GAME
-    // =========================
+    // ==========================================
 
     public void startGame() {
 
         if (!isRunning) {
-
             isRunning = true;
-
+            playMusic();
             mainGameLoop();
         }
     }
 
-    // =========================
+    // ==========================================
     // GET SLEEP TIME
-    // =========================
+    // ==========================================
 
     private int getSleepTime() {
 
@@ -434,9 +536,9 @@ public class Scene extends JPanel {
         return 2;
     }
 
-    // =========================
+    // ==========================================
     // GET PLAYER SPEED
-    // =========================
+    // ==========================================
 
     private int getPlayerSpeed() {
 
@@ -451,9 +553,9 @@ public class Scene extends JPanel {
         return 1;
     }
 
-    // =========================
+    // ==========================================
     // MAIN GAME LOOP
-    // =========================
+    // ==========================================
 
     private void mainGameLoop() {
 
@@ -464,77 +566,51 @@ public class Scene extends JPanel {
 
                         try {
 
-                            Thread.sleep(
-                                    getSleepTime()
-                            );
+                            Thread.sleep(getSleepTime());
 
-                            // =========================
+                            // ==========================================
                             // PLAYER MOVEMENT
-                            // =========================
+                            // ==========================================
 
                             if (direction != null) {
 
                                 if (direction == 0) {
                                     // RIGHT
-
                                     if (player.getX() < width - 25) {
-
-                                        player.moveRight(
-                                                getPlayerSpeed()
-                                        );
-
+                                        player.moveRight(getPlayerSpeed());
                                     } else {
-
                                         direction = 1;
                                     }
 
                                 } else if (direction == 1) {
                                     // LEFT
-
                                     if (player.getX() >= 25) {
-
-                                        player.moveLeft(
-                                                getPlayerSpeed()
-                                        );
-
+                                        player.moveLeft(getPlayerSpeed());
                                     } else {
-
                                         direction = 0;
                                     }
 
                                 } else if (direction == 2) {
                                     // DOWN
-
                                     if (player.getY() < height - 55) {
-
-                                        player.moveDown(
-                                                getPlayerSpeed()
-                                        );
-
+                                        player.moveDown(getPlayerSpeed());
                                     } else {
-
                                         direction = 3;
                                     }
 
                                 } else if (direction == 3) {
                                     // UP
-
                                     if (player.getY() >= 25) {
-
-                                        player.moveUp(
-                                                getPlayerSpeed()
-                                        );
-
+                                        player.moveUp(getPlayerSpeed());
                                     } else {
-
                                         direction = 2;
                                     }
                                 }
                             }
 
-                            // =========================
+                            // ==========================================
                             // FOOD COLLISION
-                            // =========================
+                            // ==========================================
 
                             Rectangle foodRect =
                                     new Rectangle(
@@ -545,15 +621,13 @@ public class Scene extends JPanel {
                                     );
 
                             if (player.touchesFood(foodRect)) {
-
                                 score++;
-
                                 generateFood();
                             }
 
-                            // =========================
+                            // ==========================================
                             // ROCK COLLISION
-                            // =========================
+                            // ==========================================
 
                             for (Rectangle rock : rocks) {
 
@@ -573,9 +647,15 @@ public class Scene extends JPanel {
 
                                 if (hitRock) {
 
-                                    // =========================
+                                    // ==========================================
+                                    // SHOCK FACE (פרצוף מופתע בעת פגיעה)
+                                    // ==========================================
+                                    player.setHit(true);
+                                    repaint(); // צביעה מיידית כדי להציג את הפרצוף המופתע
+
+                                    // ==========================================
                                     // HIGH SCORE
-                                    // =========================
+                                    // ==========================================
 
                                     if (score > highScore) {
 
@@ -605,9 +685,9 @@ public class Scene extends JPanel {
                                         );
                                     }
 
-                                    // =========================
+                                    // ==========================================
                                     // RESET GAME
-                                    // =========================
+                                    // ==========================================
 
                                     score = 0;
 
@@ -626,14 +706,13 @@ public class Scene extends JPanel {
                                 }
                             }
 
-                            // =========================
+                            // ==========================================
                             // REPAINT
-                            // =========================
+                            // ==========================================
 
                             repaint();
 
                         } catch (InterruptedException e) {
-
                             e.printStackTrace();
                         }
                     }
@@ -642,31 +721,25 @@ public class Scene extends JPanel {
         gameThread.start();
     }
 
-    // =========================
+    // ==========================================
     // DRAW
-    // =========================
+    // ==========================================
 
     @Override
     protected void paintComponent(Graphics g) {
 
         super.paintComponent(g);
 
-        // =========================
+        // ==========================================
         // BACKGROUND
-        // =========================
+        // ==========================================
 
         g.setColor(Color.WHITE);
+        g.fillRect(0, 0, width, height);
 
-        g.fillRect(
-                0,
-                0,
-                width,
-                height
-        );
-
-        // =========================
+        // ==========================================
         // ROCKS
-        // =========================
+        // ==========================================
 
         g.setColor(Color.BLACK);
 
@@ -691,9 +764,9 @@ public class Scene extends JPanel {
             g.setColor(Color.BLACK);
         }
 
-        // =========================
+        // ==========================================
         // FOOD
-        // =========================
+        // ==========================================
 
         if (food != null &&
                 foodColor != null) {
@@ -708,18 +781,17 @@ public class Scene extends JPanel {
             );
         }
 
-        // =========================
+        // ==========================================
         // PLAYER
-        // =========================
+        // ==========================================
 
         if (player != null) {
-
             player.draw(g);
         }
 
-        // =========================
+        // ==========================================
         // SCORE
-        // =========================
+        // ==========================================
 
         g.setColor(Color.BLACK);
 

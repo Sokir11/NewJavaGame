@@ -5,6 +5,7 @@ public class Player {
 
     private int x;
     private int y;
+    private boolean isHit = false; // משתנה שמציין האם השחקן נפגע
 
     public Player(int x, int y) {
         this.x = x;
@@ -33,6 +34,11 @@ public class Player {
 
     public int getY() {
         return this.y;
+    }
+
+    // פונקציה לסימון שהשחקן נפגע (מופתע)
+    public void setHit(boolean hit) {
+        this.isHit = hit;
     }
 
     // =========================
@@ -135,6 +141,18 @@ public class Player {
                 SIZE,
                 SIZE
         );
+
+        // EYES
+        graphics.setColor(Color.BLACK);
+        graphics.fillRect(this.x + 3, this.y + 5, 3, 3); // עין שמאלית
+        graphics.fillRect(this.x + 11, this.y + 5, 3, 3); // עין ימנית
+
+        // MOUTH (אם השחקן נפגע - מציגים עיגול מופתע, אחרת - חיוך רגיל)
+        if (isHit) {
+            graphics.fillOval(this.x + 6, this.y + 10, 5, 5); // פה עגול ומופתע
+        } else {
+            graphics.fillRect(this.x + 5, this.y + 11, 7, 2); // חיוך רגיל
+        }
 
         // BODY
         int shoulderWidth = SIZE / 2;
